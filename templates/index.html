@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entity Relationship Analysis</title>
+    <!-- Bootstrap CSS -->
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body class="container">
+    <h1>Entity Relationship Analysis</h1>
+    <div>
+        <textarea id="textInput" class="form-control" rows="3" placeholder="Enter text here or upload a file below"></textarea>
+        <input type="file" id="fileInput" class="form-control mt-2">
+        <button onclick="analyzeText()" class="btn btn-primary mt-2">Analyze</button>
+    </div>
+    <h2>Entities</h2>
+    <div id="entities" class="result-box"></div>
+    <h2>Relationships</h2>
+    <div id="relationships" class="result-box"></div>
+
+    <script>
+        async function analyzeText() {
+            let formData = new FormData();
+    
+            const textInput = document.getElementById('textInput').value;
+            const fileInput = document.getElementById('fileInput').files[0];
+    
+            if (textInput) {
+                formData.append('text', textInput);
+            } else if (fileInput) {
+                formData.append('file', fileInput);
+            } else {
+                alert('Please enter some text or upload a file.');
+                return;
+            }
+    
+            const response = await fetch('/analyze/', {
+                method: 'POST',
+                body: formData // Use FormData to send text or file
+            });
+    
+            if (!response.ok) {
+                alert('Failed to analyze text. Please try again.');
+                return;
+            }
+    
+            const data = await response.json(); // Assuming the response is JSON
+    
+            // Assuming the backend returns an object with an 'entities' array
+            const entitiesDiv = document.getElementById('entities');
+            entitiesDiv.innerHTML = ''; // Clear previous results
+            data.entities.forEach(entity => {
+                const entityElement = document.createElement('div');
+                entityElement.textContent = `${entity.entity} (${entity.type}) - ${entity.url ? entity.url : 'No URL found'}`;
+                entitiesDiv.appendChild(entityElement);
+            });
+        }
+    </script>
+    
+
+    <style>
+        .result-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+            min-height: 100px;
+        }
+    </style>
+</body>
+</html>
